@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:testflutter/screens/home_screen.dart';
+import 'package:testflutter/screens/register_screen.dart';
 import 'screens/login_screen.dart';
 import 'styles/app_styles.dart';
 
@@ -18,7 +20,13 @@ class MyApp extends StatelessWidget {
           style: AppStyles.buttonStyle(context),
         ),
       ),
-      home: LoginScreen(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => LoginScreen(),
+        '/register': (context) => RegisterScreen(),
+        '/home': (context) => HomeScreen(),
+        '/login': (context) => LoginScreen(), // Halaman home
+      },
     );
   }
 }

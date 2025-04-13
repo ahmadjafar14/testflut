@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:testflutter/screens/register_screen.dart';
+import 'package:testflutter/services/ApiService.dart';
 import '../screens/home_screen.dart';
 import '../styles/app_styles.dart';
 import '../database/database_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginForm extends StatefulWidget {
   @override
@@ -51,16 +53,55 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   void _login() async {
-    final username = _usernameController.text;
-    final password = _passwordController.text;
-    final user = await dbHelper.loginUser(username, password);
-    print(user);
-    if (user != null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Login Berhasil")));
-    } else {
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text.trim();
+
+    // Validasi input
+    if (username.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Username atau Password salah")));
+        SnackBar(content: Text('Username dan password tidak boleh kosong')),
+      );
+      return;
+    }
+
+    try {
+      final api = ApiService(); // Pastikan ApiService kamu sudah benar
+      final response = await api.loginUser(username, password);
+      if (response.statusCode == 200) {
+        final token = response.data['token'];
+        final user = response.data['user'];
+
+        if (token == null || user == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Token atau data pengguna tidak ditemukan')),
+          );
+          return;
+        }
+
+        //   // Simpan data ke SharedPreferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', token);
+        await prefs.setString('user_email', user['email']);
+        await prefs.setString('user_name', user['username']);
+
+        //   // Arahkan ke halaman home
+        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+      }
+      //  else {
+      //   // Respons gagal
+      //   print('Login gagal: ${response.data}');
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     SnackBar(
+      //         content: Text(
+      //             'Login gagal: ${response.data['error'] ?? 'Unknown error'}')),
+      //   );
+      // }
+    } catch (e) {
+      // Tangani kesalahan jika terjadi pada API request
+      print('Login gagal: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Terjadi kesalahan: $e')),
+      );
     }
   }
 
