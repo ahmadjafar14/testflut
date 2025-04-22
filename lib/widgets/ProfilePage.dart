@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:testflutter/models/Menus.dart';
-import 'package:testflutter/services/ApiService.dart';
+import '../models/Menus.dart';
+import '../services/ApiService.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Profilepage extends StatefulWidget {

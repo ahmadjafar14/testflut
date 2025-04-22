@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:testflutter/screens/register_screen.dart';
-import 'package:testflutter/services/ApiService.dart';
+import '../screens/register_screen.dart';
+import '../services/ApiService.dart';
 import '../screens/home_screen.dart';
 import '../styles/app_styles.dart';
 import '../database/database_helper.dart';

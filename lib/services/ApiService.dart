@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:testflutter/models/Menus.dart';
-import 'package:testflutter/models/Users.dart';
+import '../models/Menus.dart';
+import '../models/Users.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
