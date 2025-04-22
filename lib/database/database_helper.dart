@@ -1,83 +1,70 @@
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:sqflite/sqflite.dart';
+import 'dart:io';
 import 'package:path/path.dart';
-import 'package:hive/hive.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:testflut/models/Users.dart';
 
 class DatabaseHelper {
-  static final DatabaseHelper instance = DatabaseHelper._init();
+  static final DatabaseHelper _instance = DatabaseHelper._internal();
+  factory DatabaseHelper() => _instance;
+
+  DatabaseHelper._internal();
+
   static Database? _database;
-  static Box? _hiveBox;
-
-  DatabaseHelper._init();
-
-  Future<void> initDatabase() async {
-    if (kIsWeb) {
-      await Hive.initFlutter();
-      _hiveBox = await Hive.openBox('users');
-    } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      sqfliteFfiInit();
-      databaseFactory = databaseFactoryFfi;
-    }
-  }
 
   Future<Database> get database async {
-    if (kIsWeb) throw UnsupportedError("Gunakan Hive di Web!");
-
-    if (_database != null) return _database!;
-    _database = await _initDB('users.db');
-    return _database!;
+    return _database ??= await _initDatabase();
   }
 
-  Future<Database> _initDB(String filePath) async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, filePath);
+  Future<Database> _initDatabase() async {
+    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    String path = join(documentsDirectory.path, 'users.db');
+    print('Database path: $path');
 
     return await openDatabase(
       path,
       version: 1,
-      onCreate: (db, version) async {
-        await db.execute('''
-          CREATE TABLE users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE,
-            password TEXT
-          )
-        ''');
-      },
+      onCreate: _onCreate,
     );
   }
 
-  Future<void> registerUser(String username, String password) async {
-    if (kIsWeb) {
-      await _hiveBox?.put(username, password);
-    } else {
-      final db = await database;
-      await db.insert(
-        'users',
-        {'username': username, 'password': password},
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    }
+  Future<void> _onCreate(Database db, int version) async {
+    await db.execute('''
+      CREATE TABLE users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT,
+        password TEXT,
+        fullname TEXT,
+        email TEXT,
+        tgllahir TEXT,
+        gender TEXT,
+        nohp TEXT,
+        alamat TEXT
+      )
+    ''');
   }
 
-  Future<Map<String, dynamic>?> loginUser(String username, String password) async {
-    if (kIsWeb) {
-      final storedPassword = _hiveBox?.get(username);
-      if (storedPassword == password) {
-        return {'username': username, 'password': password};
-      }
-      return null;
+  Future<int> insertUser(Users user) async {
+    final db = await database;
+    return await db.insert(
+      'users',
+      user.toJson(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<Users?> loginUser(String username, String password) async {
+    final db = await database;
+    List<Map<String, dynamic>> result = await db.query(
+      'users',
+      where: 'username = ? AND password = ?',
+      whereArgs: [username, password],
+    );
+
+    if (result.isNotEmpty) {
+      return Users.fromJson(result.first);
     } else {
-      final db = await database;
-      final result = await db.query(
-        'users',
-        where: 'username = ? AND password = ?',
-        whereArgs: [username, password],
-      );
-      return result.isNotEmpty ? result.first : null;
+      return null;
     }
   }
 }

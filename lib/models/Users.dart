@@ -23,7 +23,6 @@ class Users {
     return {
       "username": username,
       "password": password,
-      "password_confirmation": password,
       "fullname": fullname,
       "email": email,
       "tgllahir": tgllahir,
@@ -31,5 +30,18 @@ class Users {
       "nohp": nohp,
       "alamat": alamat,
     };
+  }
+
+  factory Users.fromJson(Map<String, dynamic> json) {
+    return Users(
+      username: json['username'],
+      password: json['password'],
+      fullname: json['fullname'],
+      email: json['email'],
+      tgllahir: json['tgllahir'],
+      gender: json['gender'],
+      nohp: json['nohp'],
+      alamat: json['alamat'],
+    );
   }
 }

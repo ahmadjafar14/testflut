@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:testflut/models/Users.dart';
 import '../screens/register_screen.dart';
 import '../services/ApiService.dart';
 import '../screens/home_screen.dart';
@@ -15,7 +16,7 @@ class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final DatabaseHelper dbHelper = DatabaseHelper.instance;
+  final DatabaseHelper dbHelper = DatabaseHelper();
   bool _isPasswordVisible = false; // Tambahkan variabel ini
 
   @override
@@ -65,28 +66,46 @@ class _LoginFormState extends State<LoginForm> {
     }
 
     try {
-      final api = ApiService(); // Pastikan ApiService kamu sudah benar
-      final response = await api.loginUser(username, password);
-      if (response.statusCode == 200) {
-        final token = response.data['token'];
-        final user = response.data['user'];
-
-        if (token == null || user == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Token atau data pengguna tidak ditemukan')),
-          );
-          return;
-        }
-
-        //   // Simpan data ke SharedPreferences
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', token);
-        await prefs.setString('user_email', user['email']);
-        await prefs.setString('user_name', user['username']);
-
-        //   // Arahkan ke halaman home
-        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+      Users? user = await dbHelper.loginUser(username, password);
+      if (user != null) {
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: Text("Login Berhasil"),
+            content: Text("Selamat datang, ${user.fullname}!"),
+          ),
+        );
+      } else {
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: Text("Login Gagal"),
+            content: Text("Username atau password salah."),
+          ),
+        );
       }
+      // final api = ApiService(); // Pastikan ApiService kamu sudah benar
+      // final response = await api.loginUser(username, password);
+      // if (response.statusCode == 200) {
+      //   final token = response.data['token'];
+      //   final user = response.data['user'];
+
+      //   if (token == null || user == null) {
+      //     ScaffoldMessenger.of(context).showSnackBar(
+      //       SnackBar(content: Text('Token atau data pengguna tidak ditemukan')),
+      //     );
+      //     return;
+      //   }
+
+      //   //   // Simpan data ke SharedPreferences
+      //   SharedPreferences prefs = await SharedPreferences.getInstance();
+      //   await prefs.setString('token', token);
+      //   await prefs.setString('user_email', user['email']);
+      //   await prefs.setString('user_name', user['username']);
+
+      //   //   // Arahkan ke halaman home
+      //   Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+      // }
       //  else {
       //   // Respons gagal
       //   print('Login gagal: ${response.data}');

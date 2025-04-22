@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:testflut/database/database_helper.dart';
 import '../models/Users.dart';
 import '../services/ApiService.dart';
 // import '../database/database_helper.dart';
@@ -11,6 +12,7 @@ class RegisterForm extends StatefulWidget {
 }
 
 class _RegisterFormState extends State<RegisterForm> {
+  final DatabaseHelper dbHelper = DatabaseHelper();
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -68,23 +70,24 @@ class _RegisterFormState extends State<RegisterForm> {
         nohp: _nohpController.text,
         alamat: _alamatController.text,
       );
+      await dbHelper.insertUser(user);
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      // final api = ApiService();
+      // final response = await api.registerUser(user);
 
-      final api = ApiService();
-      final response = await api.registerUser(user);
-
-      if (response.statusCode == 201) {
-        // Registrasi berhasil
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Registrasi berhasil")),
-        );
-        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-      } else {
-        // Registrasi gagal
-        final errorMsg = response.data['error'] ?? 'Gagal mendaftar';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMsg.toString())),
-        );
-      }
+      // if (response.statusCode == 201) {
+      //   // Registrasi berhasil
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     SnackBar(content: Text("Registrasi berhasil")),
+      //   );
+      //   Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      // } else {
+      //   // Registrasi gagal
+      //   final errorMsg = response.data['error'] ?? 'Gagal mendaftar';
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     SnackBar(content: Text(errorMsg.toString())),
+      //   );
+      // }
     }
   }
 
