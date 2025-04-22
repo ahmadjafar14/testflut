@@ -8,9 +8,7 @@ class ApiService {
 
   Future<Response> fetchUserData(String token) async {
     try {
-      _dio.options.headers = {
-        'Authorization': 'Bearer $token',
-      };
+      _dio.options.headers = {'Authorization': 'Bearer $token'};
       final response = await _dio.get('user');
       return response;
     } catch (e) {
